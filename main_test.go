@@ -18,7 +18,7 @@ func TestCompatibilityAndReceipts(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(srv.serveHTTP))
 	defer ts.Close()
 	c := ts.Client()
-	for _, n := range []int{1, 8192, 256 << 10, 2 << 20} {
+	for _, n := range []int{1, 8192, 256 << 10, 2 << 20, 8 << 20} {
 		r, e := c.Get(fmt.Sprintf("%s/__down?bytes=%d", ts.URL, n))
 		if e != nil {
 			t.Fatal(e)
@@ -32,7 +32,7 @@ func TestCompatibilityAndReceipts(t *testing.T) {
 			t.Fatalf("download %d status %d bytes %d", n, r.StatusCode, len(b))
 		}
 	}
-	for _, n := range []int{8192, 256 << 10, 2 << 20} {
+	for _, n := range []int{8192, 256 << 10, 2 << 20, 8 << 20} {
 		r, e := c.Post(ts.URL+"/__up", "application/octet-stream", bytes.NewReader(make([]byte, n)))
 		if e != nil {
 			t.Fatal(e)
@@ -52,7 +52,7 @@ func TestFailClosedAndLimits(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(srv.serveHTTP))
 	defer ts.Close()
 	c := ts.Client()
-	r, e := c.Get(ts.URL + "/__down?bytes=2097153")
+	r, e := c.Get(ts.URL + "/__down?bytes=8388609")
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -60,7 +60,7 @@ func TestFailClosedAndLimits(t *testing.T) {
 		t.Fatalf("oversized download status %d", r.StatusCode)
 	}
 	r.Body.Close()
-	r, e = c.Post(ts.URL+"/__up", "application/octet-stream", bytes.NewReader(make([]byte, 2<<20+1)))
+	r, e = c.Post(ts.URL+"/__up", "application/octet-stream", bytes.NewReader(make([]byte, 8<<20+1)))
 	if e != nil {
 		t.Fatal(e)
 	}

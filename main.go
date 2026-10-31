@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	maxRequestBytes  int64 = 2 << 20  // The NHA client uses up to 2 MiB per throughput request.
+	maxRequestBytes  int64 = 8 << 20  // Match NHA sustained-download requests (8 MiB after warm-up).
 	totalBudgetBytes int64 = 64 << 20 // Budget per direction, per server process lifetime.
 	maxConcurrent          = 24
 )
@@ -89,7 +89,7 @@ func (s *referenceServer) download(w http.ResponseWriter, r *http.Request) {
 	}
 	n, err := strconv.ParseInt(r.URL.Query().Get("bytes"), 10, 64)
 	if err != nil || n < 1 || n > maxRequestBytes {
-		http.Error(w, "bytes must be between 1 and 2097152", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("bytes must be between 1 and %d", maxRequestBytes), http.StatusBadRequest)
 		return
 	}
 	if !s.reserve(true, n) {
